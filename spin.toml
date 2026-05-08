@@ -1,0 +1,46 @@
+spin_manifest_version = 2
+
+[application]
+name = "akamai-functions-semantic-search-cache"
+version = "0.1.0"
+authors = ["Thorsten Hans <thans@akamai.com>"]
+description = ""
+
+[variables]
+ollama_endpoint        = { default = "http://127.0.0.1:11434" }
+ollama_embed_model     = { default = "nomic-embed-text" }
+ollama_chat_model      = { default = "qwen2.5:14b" }
+similarity_threshold   = { default = "0.85" }
+max_query_length       = { default = "500" }
+
+[[trigger.http]]
+route = "/api/..."
+component = "api"
+
+[[trigger.http]]
+route = "/..."
+component = "frontend"
+
+[component.api]
+source = "api/dist/api.wasm"
+allowed_outbound_hosts = ["{{ ollama_endpoint }}"]
+key_value_stores = ["default"]
+
+[component.api.variables]
+ollama_endpoint      = "{{ ollama_endpoint }}"
+ollama_embed_model   = "{{ ollama_embed_model }}"
+ollama_chat_model    = "{{ ollama_chat_model }}"
+similarity_threshold = "{{ similarity_threshold }}"
+max_query_length     = "{{ max_query_length }}"
+
+[component.api.build]
+command = "npm install && npm run build"
+workdir = "api"
+
+[component.frontend]
+source = { url = "https://github.com/spinframework/spin-fileserver/releases/download/v0.3.0/spin_static_fs.wasm", digest = "sha256:ef88708817e107bf49985c7cefe4dd1f199bf26f6727819183d5c996baa3d148" }
+files = [{ source = "frontend/dist", destination = "/" }]
+
+[component.frontend.build]
+command = "npm install && npm run build"
+workdir = "frontend"

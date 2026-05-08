@@ -1,0 +1,69 @@
+#cloud-config
+
+write_files:
+  - path: /etc/environment
+    content: |
+      OLLAMA_MODELS="/var/lib/ollama/models"
+    append: true
+  - path: /etc/systemd/system/ollama.service.d/override.conf
+    owner: root:root
+    permissions: "0644"
+    content: |
+      [Service]
+      Environment="OLLAMA_HOST=0.0.0.0:11434"
+      Environment="OLLAMA_KEEP_ALIVE=-1"
+
+  # Runs once after the first reboot (when GPU drivers are active)
+  - path: /usr/local/bin/ollama-setup.sh
+    permissions: "0755"
+    content: |
+      #!/bin/bash
+      set -euo pipefail
+
+      export OLLAMA_MODELS=/var/lib/ollama/models
+      curl -fsSL https://ollama.com/install.sh | sh
+
+      systemctl daemon-reload
+      systemctl restart ollama
+      systemctl enable ollama.service
+
+%{ for model in ollama_models ~}
+      ollama pull ${model}
+%{ endfor ~}
+
+      # Prevent this service from running again on subsequent boots
+      systemctl disable ollama-setup.service
+
+      reboot
+
+  - path: /etc/systemd/system/ollama-setup.service
+    owner: root:root
+    permissions: "0644"
+    content: |
+      [Unit]
+      Description=Ollama Post-Driver Setup
+      After=network-online.target
+      Wants=network-online.target
+
+      [Service]
+      Type=oneshot
+      ExecStart=/usr/local/bin/ollama-setup.sh
+      RemainAfterExit=yes
+      StandardOutput=journal
+      StandardError=journal
+
+      [Install]
+      WantedBy=multi-user.target
+
+runcmd:
+  - apt-get update
+  - apt-get upgrade -y
+  - "apt-get install -y linux-headers-$(uname -r) ubuntu-drivers-common"
+  - ubuntu-drivers install
+  - systemctl enable ollama-setup.service
+
+power_state:
+  mode: reboot
+  message: Rebooting to load GPU drivers
+  timeout: 30
+  condition: true

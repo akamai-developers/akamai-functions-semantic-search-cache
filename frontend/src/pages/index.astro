@@ -1,0 +1,671 @@
+---
+import Layout from '../layouts/Layout.astro';
+---
+
+<Layout>
+  <!-- Ambient glow -->
+  <div class="fixed top-0 left-1/2 -translate-x-1/2 w-[900px] h-[500px] bg-indigo-600/8 blur-[120px] rounded-full pointer-events-none" aria-hidden="true"></div>
+  <!-- Dot grid -->
+  <div class="fixed inset-0 bg-[radial-gradient(rgba(148,163,184,0.04)_1px,transparent_1px)] [background-size:28px_28px] pointer-events-none" aria-hidden="true"></div>
+
+  <!-- ── Header ─────────────────────────────────────────────────────────── -->
+  <header class="fixed top-0 left-0 right-0 z-30 border-b border-gray-800/60 backdrop-blur-md bg-gray-950/75">
+    <div class="max-w-5xl mx-auto px-4 sm:px-6 h-14 flex items-center justify-between">
+
+      <!-- Logo -->
+      <a href="/" class="flex items-center gap-2.5 group">
+        <div class="w-7 h-7 bg-gradient-to-br from-indigo-500 to-violet-600 rounded-lg flex items-center justify-center shadow-lg shadow-indigo-500/25">
+          <!-- lightning bolt -->
+          <svg class="w-4 h-4 text-white" fill="currentColor" viewBox="0 0 20 20">
+            <path d="M11.3 1.046A1 1 0 0112 2v5h4a1 1 0 01.82 1.573l-7 10A1 1 0 018 18v-5H4a1 1 0 01-.82-1.573l7-10a1 1 0 011.12-.38z"/>
+          </svg>
+        </div>
+        <span class="font-semibold text-white text-sm tracking-tight">EdgeIntent</span>
+        <span class="text-gray-600 text-xs hidden sm:block">/ Semantic Cache</span>
+      </a>
+
+      <!-- Actions -->
+      <div class="flex items-center gap-2">
+        <a
+          href="https://github.com/akamai-developers/akamai-functions-semantic-search-cache"
+          target="_blank"
+          rel="noopener"
+          class="flex items-center gap-2 px-3 py-1.5 text-sm text-gray-400 hover:text-white bg-gray-800/60 hover:bg-gray-800 border border-gray-700/50 hover:border-gray-600 rounded-lg transition-all duration-150"
+        >
+          <svg class="w-4 h-4 shrink-0" fill="currentColor" viewBox="0 0 24 24">
+            <path d="M12 2C6.477 2 2 6.484 2 12.017c0 4.425 2.865 8.18 6.839 9.504.5.092.682-.217.682-.483 0-.237-.008-.868-.013-1.703-2.782.605-3.369-1.343-3.369-1.343-.454-1.158-1.11-1.466-1.11-1.466-.908-.62.069-.608.069-.608 1.003.07 1.531 1.032 1.531 1.032.892 1.53 2.341 1.088 2.91.832.092-.647.35-1.088.636-1.338-2.22-.253-4.555-1.113-4.555-4.951 0-1.093.39-1.988 1.029-2.688-.103-.253-.446-1.272.098-2.65 0 0 .84-.27 2.75 1.026A9.564 9.564 0 0112 6.844a9.59 9.59 0 012.504.337c1.909-1.296 2.747-1.027 2.747-1.027.546 1.379.202 2.398.1 2.651.64.7 1.028 1.595 1.028 2.688 0 3.848-2.339 4.695-4.566 4.943.359.309.678.92.678 1.855 0 1.338-.012 2.419-.012 2.747 0 .268.18.58.688.482A10.02 10.02 0 0022 12.017C22 6.484 17.522 2 12 2z"/>
+          </svg>
+          <span class="hidden sm:inline">Browse Source Code</span>
+        </a>
+        <button
+          id="cache-btn"
+          class="flex items-center gap-2 px-3 py-1.5 text-sm text-gray-400 hover:text-white bg-gray-800/60 hover:bg-gray-800 border border-gray-700/50 hover:border-gray-600 rounded-lg transition-all duration-150"
+        >
+          <!-- database icon -->
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <ellipse cx="12" cy="5" rx="9" ry="3" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+            <path d="M21 12c0 1.66-4.03 3-9 3S3 13.66 3 12" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+            <path d="M3 5v14c0 1.66 4.03 3 9 3s9-1.34 9-3V5" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+          </svg>
+          <span class="hidden sm:inline">Cache Inspector</span>
+          <div id="cache-count-badge" class="hidden w-5 h-5 bg-indigo-600 rounded-full text-white text-xs font-bold flex items-center justify-center"></div>
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <!-- ── Main ──────────────────────────────────────────────────────────── -->
+  <main class="min-h-screen pt-14">
+
+    <!-- Hero + Search -->
+    <section class="relative max-w-3xl mx-auto px-4 sm:px-6 pt-16 sm:pt-24 pb-6 text-center">
+
+      <!-- Status pill -->
+      <div class="inline-flex items-center gap-2 bg-gray-900 border border-gray-700/60 rounded-full px-3.5 py-1.5 text-xs font-medium text-gray-400 mb-8 shadow-sm">
+        <span class="w-1.5 h-1.5 bg-emerald-400 rounded-full animate-pulse"></span>
+        Akamai Functions · <a href="https://spinframework.dev" target="_blank" rel="noopener" class="hover:text-white transition-colors">Spin</a> · Ollama · WebAssembly
+      </div>
+
+      <!-- Headline -->
+      <h1 class="text-4xl sm:text-5xl md:text-[3.75rem] font-bold tracking-tight leading-[1.1] mb-5">
+        <span class="bg-gradient-to-r from-indigo-400 via-violet-400 to-cyan-400 bg-clip-text text-transparent">Semantic Search</span><br />
+        <span class="text-white">at the Edge</span>
+      </h1>
+
+      <p class="text-gray-400 text-base sm:text-lg max-w-xl mx-auto mb-10 leading-relaxed">
+        Intelligent query caching that understands meaning — not just keywords.
+        Vector similarity powered by <span class="text-gray-300">nomic-embed-text</span>, served from
+        <span class="text-gray-300">Akamai Functions KV</span> at the network edge.
+      </p>
+
+      <!-- Search form -->
+      <form id="search-form" novalidate>
+        <div class="flex flex-col sm:flex-row gap-2.5">
+          <div class="relative flex-1">
+            <svg class="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-500 pointer-events-none" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/>
+            </svg>
+            <input
+              id="query-input"
+              type="text"
+              placeholder="Ask a factual question…"
+              autocomplete="off"
+              spellcheck="false"
+              maxlength="500"
+              class="w-full bg-gray-900/80 border border-gray-700 rounded-xl pl-12 pr-4 py-4 text-white placeholder-gray-600 text-base focus:outline-none focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/20 transition-all duration-200"
+            />
+          </div>
+          <button
+            id="search-btn"
+            type="submit"
+            class="flex items-center justify-center gap-2 bg-indigo-600 hover:bg-indigo-500 active:bg-indigo-700 disabled:opacity-50 disabled:cursor-not-allowed text-white font-semibold px-7 py-4 rounded-xl transition-colors duration-150 whitespace-nowrap"
+          >
+            <svg id="search-icon" class="w-5 h-5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/>
+            </svg>
+            <div id="search-spinner" class="hidden w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin-slow shrink-0"></div>
+            <span id="search-btn-text">Search</span>
+          </button>
+        </div>
+      </form>
+
+      <!-- Sample questions -->
+      <div class="mt-4 flex flex-wrap justify-center gap-1.5 items-center">
+        <span class="text-xs text-gray-600 mr-1">Try:</span>
+        <button class="sample-q px-2.5 py-1 text-xs text-gray-500 hover:text-indigo-400 bg-gray-900/0 hover:bg-indigo-500/8 border border-transparent hover:border-indigo-500/20 rounded-lg transition-all duration-150">What is the speed of light?</button>
+        <button class="sample-q px-2.5 py-1 text-xs text-gray-500 hover:text-indigo-400 bg-gray-900/0 hover:bg-indigo-500/8 border border-transparent hover:border-indigo-500/20 rounded-lg transition-all duration-150">Who wrote Hamlet?</button>
+        <button class="sample-q px-2.5 py-1 text-xs text-gray-500 hover:text-indigo-400 bg-gray-900/0 hover:bg-indigo-500/8 border border-transparent hover:border-indigo-500/20 rounded-lg transition-all duration-150">What is the capital of Japan?</button>
+      </div>
+    </section>
+
+    <!-- ── Result Panel ──────────────────────────────────────────────────── -->
+    <section id="result-section" class="hidden max-w-3xl mx-auto px-4 sm:px-6 pb-10">
+
+      <!-- Meta row -->
+      <div class="flex items-center justify-between mb-3 flex-wrap gap-2">
+        <div id="hit-badge" class="flex items-center gap-2 rounded-full px-3.5 py-1.5 text-sm font-semibold border">
+          <span id="hit-icon"></span>
+          <span id="hit-label"></span>
+        </div>
+        <div class="text-right">
+          <span id="latency-value" class="text-3xl font-mono font-bold text-white tabular-nums"></span>
+          <span class="text-gray-500 text-sm ml-1">ms</span>
+        </div>
+      </div>
+
+      <!-- Latency bar -->
+      <div class="mb-5">
+        <div class="h-1 bg-gray-800 rounded-full overflow-hidden">
+          <div id="latency-bar" class="h-full rounded-full" style="width:0%;transition:width 0.8s cubic-bezier(0.4,0,0.2,1)"></div>
+        </div>
+        <p id="latency-label" class="text-xs text-gray-500 mt-2 leading-relaxed"></p>
+      </div>
+
+      <!-- Answer card -->
+      <div class="bg-gray-900/80 border border-gray-800 rounded-2xl p-5 sm:p-6 shadow-xl shadow-black/20">
+        <div id="answer-content" class="text-gray-200 leading-relaxed text-sm sm:text-base"></div>
+      </div>
+
+      <!-- Similarity meter (semantic hits) -->
+      <div id="similarity-section" class="hidden mt-4 bg-violet-500/5 border border-violet-500/20 rounded-xl p-4">
+        <div class="flex items-center gap-3">
+          <span class="text-sm text-gray-400 whitespace-nowrap shrink-0">Semantic similarity</span>
+          <div class="flex-1 h-2 bg-gray-800 rounded-full overflow-hidden">
+            <div id="similarity-bar" class="h-full bg-violet-500 rounded-full" style="width:0%;transition:width 0.9s cubic-bezier(0.4,0,0.2,1)"></div>
+          </div>
+          <span id="similarity-value" class="font-mono font-bold text-violet-400 text-sm whitespace-nowrap shrink-0"></span>
+        </div>
+      </div>
+
+      <!-- Contextual hint -->
+      <div id="result-hint" class="hidden mt-4 p-4 rounded-xl border text-sm leading-relaxed"></div>
+    </section>
+
+    <!-- ── Defense & Guardrails ─────────────────────────────────────────── -->
+    <section class="max-w-5xl mx-auto px-4 sm:px-6 py-12">
+      <div class="border-t border-gray-800/50 pt-12">
+        <div class="flex items-center justify-center gap-2 mb-2">
+          <svg class="w-3.5 h-3.5 text-rose-400" fill="currentColor" viewBox="0 0 20 20">
+            <path fill-rule="evenodd" d="M2.166 4.999A11.954 11.954 0 0010 1.944 11.954 11.954 0 0017.834 5c.11.65.166 1.32.166 2.001 0 5.225-3.34 9.67-8 11.317C5.34 16.67 2 12.225 2 7c0-.682.057-1.35.166-2.001zm11.541 3.708a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/>
+          </svg>
+          <p class="text-xs font-semibold text-gray-600 uppercase tracking-widest">Defense & Guardrails</p>
+        </div>
+        <p class="text-center text-xs text-gray-600 mb-8 max-w-lg mx-auto">Production-grade safety layers — a blueprint for deploying LLMs responsibly.</p>
+        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-3">
+
+          <div class="bg-rose-500/3 border border-rose-500/15 rounded-2xl p-5 hover:border-rose-500/30 transition-colors">
+            <div class="w-9 h-9 bg-rose-500/10 border border-rose-500/20 rounded-xl flex items-center justify-center mb-4">
+              <svg class="w-4 h-4 text-rose-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
+              </svg>
+            </div>
+            <p class="font-semibold text-white text-sm mb-2">Schema Validation</p>
+            <p class="text-xs text-gray-500 leading-relaxed">Zod validates all request params and every KV read. Wrong shape or missing fields → rejected before any logic runs.</p>
+          </div>
+
+          <div class="bg-rose-500/3 border border-rose-500/15 rounded-2xl p-5 hover:border-rose-500/30 transition-colors">
+            <div class="w-9 h-9 bg-rose-500/10 border border-rose-500/20 rounded-xl flex items-center justify-center mb-4">
+              <svg class="w-4 h-4 text-rose-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M18.364 18.364A9 9 0 005.636 5.636m12.728 12.728A9 9 0 015.636 5.636m12.728 12.728L5.636 5.636"/>
+              </svg>
+            </div>
+            <p class="font-semibold text-white text-sm mb-2">Injection Blocklist</p>
+            <p class="text-xs text-gray-500 leading-relaxed">20+ regex patterns reject instruction overrides, jailbreak keywords ("DAN", "act as"), model delimiter tokens, and explicit code/exploit generation requests.</p>
+          </div>
+
+          <div class="bg-rose-500/3 border border-rose-500/15 rounded-2xl p-5 hover:border-rose-500/30 transition-colors">
+            <div class="w-9 h-9 bg-rose-500/10 border border-rose-500/20 rounded-xl flex items-center justify-center mb-4">
+              <svg class="w-4 h-4 text-rose-400" fill="currentColor" viewBox="0 0 20 20">
+                <path fill-rule="evenodd" d="M2.166 4.999A11.954 11.954 0 0010 1.944 11.954 11.954 0 0017.834 5c.11.65.166 1.32.166 2.001 0 5.225-3.34 9.67-8 11.317C5.34 16.67 2 12.225 2 7c0-.682.057-1.35.166-2.001zm11.541 3.708a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/>
+              </svg>
+            </div>
+            <p class="font-semibold text-white text-sm mb-2">System Prompt Lock</p>
+            <p class="text-xs text-gray-500 leading-relaxed">A hardcoded system prompt on every LLM call explicitly forbids code generation, hate speech, and persona hijacks. User input cannot override it.</p>
+          </div>
+
+          <div class="bg-rose-500/3 border border-rose-500/15 rounded-2xl p-5 hover:border-rose-500/30 transition-colors">
+            <div class="w-9 h-9 bg-rose-500/10 border border-rose-500/20 rounded-xl flex items-center justify-center mb-4">
+              <svg class="w-4 h-4 text-rose-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 7v10c0 2.21 3.582 4 8 4s8-1.79 8-4V7M4 7c0 2.21 3.582 4 8 4s8-1.79 8-4M4 7c0-2.21 3.582-4 8-4s8 1.79 8 4"/>
+              </svg>
+            </div>
+            <p class="font-semibold text-white text-sm mb-2">KV Data Integrity</p>
+            <p class="text-xs text-gray-500 leading-relaxed">Every value read from the KV store is parsed with a Zod schema. Corrupt data is silently dropped — treated as a cache miss, not a runtime crash.</p>
+          </div>
+
+          <div class="bg-rose-500/3 border border-rose-500/15 rounded-2xl p-5 hover:border-rose-500/30 transition-colors">
+            <div class="w-9 h-9 bg-rose-500/10 border border-rose-500/20 rounded-xl flex items-center justify-center mb-4">
+              <svg class="w-4 h-4 text-rose-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"/>
+              </svg>
+            </div>
+            <p class="font-semibold text-white text-sm mb-2">Network Lockdown</p>
+            <p class="text-xs text-gray-500 leading-relaxed">Spin's <code class="text-rose-300/80 text-[10px]">allowed_outbound_hosts</code> restricts all egress to the single configured Ollama endpoint. The Wasm sandbox makes arbitrary network calls impossible.</p>
+          </div>
+
+        </div>
+      </div>
+    </section>
+
+    <!-- ── How It Works ──────────────────────────────────────────────────── -->
+    <section class="max-w-5xl mx-auto px-4 sm:px-6 pb-12">
+      <div class="border-t border-gray-800/50 pt-12">
+        <p class="text-center text-xs font-semibold text-gray-600 uppercase tracking-widest mb-8">Query flow</p>
+        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
+
+          <div class="bg-gray-900/50 border border-gray-800/60 rounded-2xl p-5 hover:border-gray-700 transition-colors">
+            <div class="w-9 h-9 bg-indigo-500/10 border border-indigo-500/20 rounded-xl flex items-center justify-center mb-4">
+              <svg class="w-4 h-4 text-indigo-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/>
+              </svg>
+            </div>
+            <p class="text-[10px] font-semibold text-gray-600 uppercase tracking-widest mb-1.5">Step 1</p>
+            <p class="font-semibold text-white text-sm mb-2">Query Arrives</p>
+            <p class="text-xs text-gray-500 leading-relaxed">Input is validated, sanitized against prompt injection, and checked against the exact-match KV cache.</p>
+          </div>
+
+          <div class="bg-gray-900/50 border border-gray-800/60 rounded-2xl p-5 hover:border-gray-700 transition-colors">
+            <div class="w-9 h-9 bg-violet-500/10 border border-violet-500/20 rounded-xl flex items-center justify-center mb-4">
+              <svg class="w-4 h-4 text-violet-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 3v2m6-2v2M9 19v2m6-2v2M5 9H3m2 6H3m18-6h-2m2 6h-2M7 19h10a2 2 0 002-2V7a2 2 0 00-2-2H7a2 2 0 00-2 2v10a2 2 0 002 2zM9 9h6v6H9V9z"/>
+              </svg>
+            </div>
+            <p class="text-[10px] font-semibold text-gray-600 uppercase tracking-widest mb-1.5">Step 2</p>
+            <p class="font-semibold text-white text-sm mb-2">Embed & Search</p>
+            <p class="text-xs text-gray-500 leading-relaxed">Ollama generates a 768-dim vector via <em>nomic-embed-text</em>. Cosine similarity finds semantically equivalent queries.</p>
+          </div>
+
+          <div class="bg-gray-900/50 border border-gray-800/60 rounded-2xl p-5 hover:border-gray-700 transition-colors">
+            <div class="w-9 h-9 bg-emerald-500/10 border border-emerald-500/20 rounded-xl flex items-center justify-center mb-4">
+              <svg class="w-4 h-4 text-emerald-400" fill="currentColor" viewBox="0 0 20 20">
+                <path d="M11.3 1.046A1 1 0 0112 2v5h4a1 1 0 01.82 1.573l-7 10A1 1 0 018 18v-5H4a1 1 0 01-.82-1.573l7-10a1 1 0 011.12-.38z"/>
+              </svg>
+            </div>
+            <p class="text-[10px] font-semibold text-gray-600 uppercase tracking-widest mb-1.5">Step 3</p>
+            <p class="font-semibold text-white text-sm mb-2">Cache Hit?</p>
+            <p class="text-xs text-gray-500 leading-relaxed">Similarity &gt; 85%? Return the cached answer instantly — zero GPU cycles, single-digit milliseconds.</p>
+          </div>
+
+          <div class="bg-gray-900/50 border border-gray-800/60 rounded-2xl p-5 hover:border-gray-700 transition-colors">
+            <div class="w-9 h-9 bg-amber-500/10 border border-amber-500/20 rounded-xl flex items-center justify-center mb-4">
+              <svg class="w-4 h-4 text-amber-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.75 17L9 20l-1 1h8l-1-1-.75-3M3 13h18M5 17H3a2 2 0 01-2-2V5a2 2 0 012-2h14a2 2 0 012 2v10a2 2 0 01-2 2h-2"/>
+              </svg>
+            </div>
+            <p class="text-[10px] font-semibold text-gray-600 uppercase tracking-widest mb-1.5">Step 4</p>
+            <p class="font-semibold text-white text-sm mb-2">Generate & Cache</p>
+            <p class="text-xs text-gray-500 leading-relaxed">On a miss the LLM generates a fresh answer, stores it with its vector embedding for all future semantic lookups.</p>
+          </div>
+
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <!-- ── Footer ────────────────────────────────────────────────────────── -->
+  <footer class="border-t border-gray-800/50 py-6 mt-4">
+    <div class="max-w-5xl mx-auto px-4 sm:px-6 flex flex-col sm:flex-row items-center justify-between gap-2 text-xs text-gray-600">
+      <span class="font-medium text-gray-500">EdgeIntent</span>
+      <span>Akamai Functions · <a href="https://spinframework.dev" target="_blank" rel="noopener" class="hover:text-gray-400 transition-colors">Spin</a> · Ollama · WebAssembly</span>
+      <a href="https://github.com/akamai-developers/akamai-functions-semantic-search-cache" target="_blank" rel="noopener" class="flex items-center gap-1.5 hover:text-gray-400 transition-colors">
+        <svg class="w-3.5 h-3.5" fill="currentColor" viewBox="0 0 24 24">
+          <path d="M12 2C6.477 2 2 6.484 2 12.017c0 4.425 2.865 8.18 6.839 9.504.5.092.682-.217.682-.483 0-.237-.008-.868-.013-1.703-2.782.605-3.369-1.343-3.369-1.343-.454-1.158-1.11-1.466-1.11-1.466-.908-.62.069-.608.069-.608 1.003.07 1.531 1.032 1.531 1.032.892 1.53 2.341 1.088 2.91.832.092-.647.35-1.088.636-1.338-2.22-.253-4.555-1.113-4.555-4.951 0-1.093.39-1.988 1.029-2.688-.103-.253-.446-1.272.098-2.65 0 0 .84-.27 2.75 1.026A9.564 9.564 0 0112 6.844a9.59 9.59 0 012.504.337c1.909-1.296 2.747-1.027 2.747-1.027.546 1.379.202 2.398.1 2.651.64.7 1.028 1.595 1.028 2.688 0 3.848-2.339 4.695-4.566 4.943.359.309.678.92.678 1.855 0 1.338-.012 2.419-.012 2.747 0 .268.18.58.688.482A10.02 10.02 0 0022 12.017C22 6.484 17.522 2 12 2z"/>
+        </svg>
+        akamai-developers
+      </a>
+    </div>
+  </footer>
+
+  <!-- ── Cache Drawer ───────────────────────────────────────────────────── -->
+  <div id="cache-overlay" class="fixed inset-0 bg-black/60 backdrop-blur-sm z-40 hidden opacity-0 transition-opacity duration-200"></div>
+
+  <aside
+    id="cache-drawer"
+    class="fixed right-0 top-0 h-full w-full max-w-sm bg-gray-900 border-l border-gray-800 z-50 flex flex-col translate-x-full transition-transform duration-300 ease-out shadow-2xl"
+    aria-label="Cache Inspector"
+  >
+    <!-- Drawer header -->
+    <div class="flex items-center justify-between px-4 py-3.5 border-b border-gray-800 shrink-0">
+      <div>
+        <h2 class="font-semibold text-white text-sm">Cache Inspector</h2>
+        <p class="text-xs text-gray-500 mt-0.5">Akamai Functions KV Store state</p>
+      </div>
+      <div class="flex items-center gap-1">
+        <button id="refresh-cache-btn" title="Refresh" class="p-2 hover:bg-gray-800 rounded-lg text-gray-400 hover:text-white transition-colors">
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/>
+          </svg>
+        </button>
+        <button id="drawer-close-btn" title="Close" class="p-2 hover:bg-gray-800 rounded-lg text-gray-400 hover:text-white transition-colors">
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
+          </svg>
+        </button>
+      </div>
+    </div>
+
+    <!-- Stats row -->
+    <div id="cache-stats" class="grid grid-cols-3 border-b border-gray-800 shrink-0"></div>
+
+    <!-- Entries list -->
+    <div class="flex-1 overflow-y-auto" id="cache-entries-container">
+      <div class="p-3 space-y-2"></div>
+    </div>
+
+    <!-- Clear button -->
+    <div class="p-3 border-t border-gray-800 shrink-0">
+      <button id="clear-cache-btn" class="w-full py-2.5 text-sm font-medium text-red-400 bg-red-500/8 hover:bg-red-500/15 border border-red-500/20 hover:border-red-500/40 rounded-lg transition-all duration-150">
+        Clear All Cache
+      </button>
+    </div>
+  </aside>
+
+  <!-- ── Toast container ───────────────────────────────────────────────── -->
+  <div id="toast-root" class="fixed bottom-5 left-1/2 -translate-x-1/2 z-50 flex flex-col items-center gap-2 pointer-events-none"></div>
+
+  <!-- ── Client Script ─────────────────────────────────────────────────── -->
+  <script>
+  document.addEventListener('DOMContentLoaded', () => {
+
+    // ── DOM refs ──────────────────────────────────────────────────────────
+    const searchForm     = document.getElementById('search-form') as HTMLFormElement;
+    const queryInput     = document.getElementById('query-input') as HTMLInputElement;
+    const searchBtn      = document.getElementById('search-btn') as HTMLButtonElement;
+    const searchBtnText  = document.getElementById('search-btn-text')!;
+    const searchIcon     = document.getElementById('search-icon')!;
+    const searchSpinner  = document.getElementById('search-spinner')!;
+    const resultSection  = document.getElementById('result-section')!;
+    const hitBadge       = document.getElementById('hit-badge')!;
+    const hitIcon        = document.getElementById('hit-icon')!;
+    const hitLabel       = document.getElementById('hit-label')!;
+    const latencyValue   = document.getElementById('latency-value')!;
+    const latencyBar     = document.getElementById('latency-bar') as HTMLElement;
+    const latencyLabel   = document.getElementById('latency-label')!;
+    const answerContent  = document.getElementById('answer-content')!;
+    const simSection     = document.getElementById('similarity-section')!;
+    const simBar         = document.getElementById('similarity-bar') as HTMLElement;
+    const simValue       = document.getElementById('similarity-value')!;
+    const resultHint     = document.getElementById('result-hint')!;
+    const cacheBtn       = document.getElementById('cache-btn')!;
+    const cacheCountBadge = document.getElementById('cache-count-badge')!;
+    const cacheOverlay   = document.getElementById('cache-overlay')!;
+    const cacheDrawer    = document.getElementById('cache-drawer')!;
+    const drawerCloseBtn = document.getElementById('drawer-close-btn')!;
+    const refreshCacheBtn = document.getElementById('refresh-cache-btn')!;
+    const cacheStats     = document.getElementById('cache-stats')!;
+    const cacheEntriesContainer = document.getElementById('cache-entries-container')!;
+    const clearCacheBtn  = document.getElementById('clear-cache-btn')!;
+    const toastRoot      = document.getElementById('toast-root')!;
+
+    // ── Hit type config ───────────────────────────────────────────────────
+    const HIT = {
+      exact: {
+        icon: '⚡',
+        label: 'Exact Cache Hit',
+        badge: 'bg-emerald-500/10 border-emerald-500/30 text-emerald-400',
+        bar:   'bg-emerald-500',
+        maxMs: 50,
+        hint:  null,
+      },
+      semantic: {
+        icon: '🧠',
+        label: 'Semantic Cache Hit',
+        badge: 'bg-violet-500/10 border-violet-500/30 text-violet-400',
+        bar:   'bg-violet-500',
+        maxMs: 300,
+        hint:  '<span class="font-semibold text-violet-400">Semantic match.</span> EdgeIntent found a previous question with similar meaning — no LLM call needed.',
+      },
+      miss: {
+        icon: '🤖',
+        label: 'GPU Generation',
+        badge: 'bg-amber-500/10 border-amber-500/30 text-amber-400',
+        bar:   'bg-amber-500',
+        maxMs: 5000,
+        hint:  '<span class="font-semibold text-amber-400">Now cached.</span> Ask a similar question — e.g. rephrase it — to see EdgeIntent return the answer semantically in milliseconds.',
+      },
+    } as const;
+
+    type HitType = keyof typeof HIT;
+
+    // ── Search ────────────────────────────────────────────────────────────
+    let loading = false;
+
+    searchForm.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      if (loading) return;
+      const q = queryInput.value.trim();
+      if (!q) { queryInput.focus(); return; }
+      await doSearch(q);
+    });
+
+    document.querySelectorAll<HTMLButtonElement>('.sample-q').forEach((btn) => {
+      btn.addEventListener('click', () => {
+        queryInput.value = btn.textContent?.trim() ?? '';
+        queryInput.focus();
+        searchForm.requestSubmit();
+      });
+    });
+
+    async function doSearch(query: string) {
+      loading = true;
+      setLoading(true);
+      resultSection.classList.add('hidden');
+
+      try {
+        const res  = await fetch(`/api/search?q=${encodeURIComponent(query)}`);
+        const data = await res.json();
+
+        if (!res.ok) {
+          showToast(data.error ?? 'Search failed.', 'error');
+          return;
+        }
+
+        renderResult(data);
+        refreshCacheCountBadge();
+      } catch {
+        showToast('Could not reach the API. Is Spin running?', 'error');
+      } finally {
+        loading = false;
+        setLoading(false);
+      }
+    }
+
+    function renderResult(data: {
+      answer: string;
+      hitType: HitType;
+      similarity?: number;
+      latencyMs: number;
+    }) {
+      const cfg = HIT[data.hitType] ?? HIT.miss;
+
+      // Badge
+      hitBadge.className = `flex items-center gap-2 rounded-full px-3.5 py-1.5 text-sm font-semibold border ${cfg.badge}`;
+      hitIcon.textContent  = cfg.icon;
+      hitLabel.textContent = cfg.label;
+
+      // Latency number
+      latencyValue.textContent = String(data.latencyMs);
+
+      // Latency bar
+      const pct = Math.min(100, Math.round((data.latencyMs / cfg.maxMs) * 100));
+      latencyBar.className = `h-full rounded-full ${cfg.bar}`;
+      latencyBar.style.width = '0%';
+      requestAnimationFrame(() => requestAnimationFrame(() => {
+        latencyBar.style.width = `${pct}%`;
+      }));
+      latencyLabel.textContent = `${cfg.label} · responded in ${data.latencyMs}ms`;
+
+      // Answer — split newlines into paragraphs
+      answerContent.innerHTML = data.answer
+        .split('\n')
+        .map(p => p.trim())
+        .filter(Boolean)
+        .map(p => `<p>${escHtml(p)}</p>`)
+        .join('');
+
+      // Similarity meter
+      if (data.hitType === 'semantic' && data.similarity != null) {
+        const pctSim = (data.similarity * 100).toFixed(1);
+        simValue.textContent = `${pctSim}%`;
+        simBar.style.width = '0%';
+        requestAnimationFrame(() => requestAnimationFrame(() => {
+          simBar.style.width = `${pctSim}%`;
+        }));
+        simSection.classList.remove('hidden');
+      } else {
+        simSection.classList.add('hidden');
+      }
+
+      // Contextual hint
+      if (cfg.hint) {
+        const hintColors: Record<HitType, string> = {
+          exact:    '',
+          semantic: 'bg-violet-500/5 border-violet-500/20 text-gray-400',
+          miss:     'bg-amber-500/5 border-amber-500/20 text-gray-400',
+        };
+        resultHint.className = `mt-4 p-4 rounded-xl border text-sm leading-relaxed ${hintColors[data.hitType]}`;
+        resultHint.innerHTML = cfg.hint;
+        resultHint.classList.remove('hidden');
+      } else {
+        resultHint.classList.add('hidden');
+      }
+
+      // Reveal with animation
+      resultSection.classList.remove('hidden');
+      resultSection.classList.add('animate-slide-down');
+      resultSection.addEventListener('animationend', () => resultSection.classList.remove('animate-slide-down'), { once: true });
+    }
+
+    function setLoading(on: boolean) {
+      searchBtn.disabled = on;
+      searchBtnText.textContent = on ? 'Searching…' : 'Search';
+      searchSpinner.classList.toggle('hidden', !on);
+      searchIcon.classList.toggle('hidden', on);
+    }
+
+    // ── Cache count badge ─────────────────────────────────────────────────
+    async function refreshCacheCountBadge() {
+      try {
+        const res = await fetch('/api/cache');
+        if (!res.ok) return;
+        const data = await res.json();
+        const n = data.exactCacheSize ?? 0;
+        if (n > 0) {
+          cacheCountBadge.textContent = String(n > 99 ? '99+' : n);
+          cacheCountBadge.classList.remove('hidden');
+          cacheCountBadge.classList.add('flex');
+        } else {
+          cacheCountBadge.classList.add('hidden');
+          cacheCountBadge.classList.remove('flex');
+        }
+      } catch { /* silent */ }
+    }
+
+    // ── Cache drawer ──────────────────────────────────────────────────────
+    cacheBtn.addEventListener('click', openDrawer);
+    cacheOverlay.addEventListener('click', closeDrawer);
+    drawerCloseBtn.addEventListener('click', closeDrawer);
+    refreshCacheBtn.addEventListener('click', loadCacheData);
+    clearCacheBtn.addEventListener('click', handleClearCache);
+
+    document.addEventListener('keydown', (e) => {
+      if (e.key === 'Escape') closeDrawer();
+    });
+
+    function openDrawer() {
+      cacheOverlay.classList.remove('hidden');
+      requestAnimationFrame(() => {
+        cacheOverlay.classList.remove('opacity-0');
+        cacheDrawer.classList.remove('translate-x-full');
+      });
+      loadCacheData();
+    }
+
+    function closeDrawer() {
+      cacheOverlay.classList.add('opacity-0');
+      cacheDrawer.classList.add('translate-x-full');
+      setTimeout(() => cacheOverlay.classList.add('hidden'), 300);
+    }
+
+    async function loadCacheData() {
+      cacheStats.innerHTML = `
+        <div class="col-span-3 py-4 text-center text-xs text-gray-600 animate-pulse">Loading…</div>
+      `;
+      cacheEntriesContainer.innerHTML = '';
+
+      try {
+        const res  = await fetch('/api/cache');
+        const data = await res.json();
+
+        cacheStats.innerHTML = `
+          <div class="flex flex-col items-center py-4 border-r border-gray-800">
+            <span class="text-2xl font-bold text-white tabular-nums">${data.exactCacheSize}</span>
+            <span class="text-[10px] text-gray-500 uppercase tracking-wide mt-1">Exact Cache</span>
+          </div>
+          <div class="flex flex-col items-center py-4 border-r border-gray-800">
+            <span class="text-2xl font-bold text-violet-400 tabular-nums">${data.vectorIndexSize}</span>
+            <span class="text-[10px] text-gray-500 uppercase tracking-wide mt-1">Vector Index</span>
+          </div>
+          <div class="flex flex-col items-center py-4">
+            <span class="text-2xl font-bold text-indigo-400 tabular-nums">${Math.round((data.similarityThreshold ?? 0.85) * 100)}%</span>
+            <span class="text-[10px] text-gray-500 uppercase tracking-wide mt-1">Threshold</span>
+          </div>
+        `;
+
+        const entries: Array<{ query: string; timestamp: number }> = data.entries ?? [];
+
+        if (entries.length === 0) {
+          cacheEntriesContainer.innerHTML = `
+            <div class="flex flex-col items-center justify-center h-48 text-center px-6">
+              <svg class="w-10 h-10 text-gray-700 mb-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M20 13V6a2 2 0 00-2-2H6a2 2 0 00-2 2v7m16 0v5a2 2 0 01-2 2H6a2 2 0 01-2-2v-5m16 0h-2.586a1 1 0 00-.707.293l-2.414 2.414a1 1 0 01-.707.293h-3.172a1 1 0 01-.707-.293l-2.414-2.414A1 1 0 006.586 13H4"/>
+              </svg>
+              <p class="text-sm text-gray-600">No entries yet.</p>
+              <p class="text-xs text-gray-700 mt-1">Run a search to populate the cache.</p>
+            </div>
+          `;
+        } else {
+          const sorted = [...entries].sort((a, b) => b.timestamp - a.timestamp);
+          const inner  = sorted.map((e) => `
+            <div class="p-3 bg-gray-800/40 border border-gray-800 rounded-xl hover:border-gray-700 transition-colors cursor-default group"
+                 title="${escHtml(e.query)}">
+              <p class="text-sm text-gray-300 line-clamp-2 leading-snug group-hover:text-white transition-colors">${escHtml(e.query)}</p>
+              <p class="text-[10px] text-gray-600 mt-2 font-mono">${fmtTime(e.timestamp)}</p>
+            </div>
+          `).join('');
+          cacheEntriesContainer.innerHTML = `<div class="p-3 space-y-2">${inner}</div>`;
+        }
+
+      } catch {
+        cacheStats.innerHTML = `<div class="col-span-3 py-4 text-center text-xs text-red-400">Failed to load cache data.</div>`;
+      }
+    }
+
+    async function handleClearCache() {
+      if (!confirm('Delete all cached queries and the vector index?')) return;
+      try {
+        const res = await fetch('/api/cache', { method: 'DELETE' });
+        if (!res.ok) throw new Error();
+        showToast('Cache cleared.', 'success');
+        await loadCacheData();
+        refreshCacheCountBadge();
+      } catch {
+        showToast('Failed to clear cache.', 'error');
+      }
+    }
+
+    // ── Toast ─────────────────────────────────────────────────────────────
+    function showToast(msg: string, type: 'success' | 'error' | 'info' = 'info') {
+      const colors = {
+        success: 'bg-emerald-500/10 border-emerald-500/30 text-emerald-300',
+        error:   'bg-red-500/10 border-red-500/30 text-red-300',
+        info:    'bg-indigo-500/10 border-indigo-500/30 text-indigo-300',
+      };
+      const icons = {
+        success: '✓',
+        error:   '✕',
+        info:    'ℹ',
+      };
+      const el = document.createElement('div');
+      el.className = `pointer-events-auto flex items-center gap-2.5 px-4 py-2.5 rounded-xl border text-sm font-medium shadow-lg animate-fade-in ${colors[type]}`;
+      el.innerHTML = `<span class="font-bold">${icons[type]}</span> ${escHtml(msg)}`;
+      toastRoot.appendChild(el);
+      setTimeout(() => { el.style.opacity = '0'; el.style.transition = 'opacity 0.3s'; setTimeout(() => el.remove(), 300); }, 3000);
+    }
+
+    // ── Helpers ───────────────────────────────────────────────────────────
+    function escHtml(s: string): string {
+      return s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+    }
+
+    function fmtTime(ts: number): string {
+      if (!ts) return '—';
+      return new Date(ts).toLocaleString(undefined, { dateStyle: 'short', timeStyle: 'short' });
+    }
+
+    // Init
+    refreshCacheCountBadge();
+    queryInput.focus();
+  });
+  </script>
+</Layout>
