@@ -4,6 +4,10 @@ A semantic search cache running as a WebAssembly component on Akamai Functions. 
 
 This repo is a working reference for how to ship an LLM-backed feature responsibly: structured input validation, prompt injection defense, a hardcoded system prompt, and network-level egress lockdown — all baked in, not bolted on.
 
+## Live Demo
+
+You can check-out the application at [https://0c65a3f0-31ff-4e09-9dc5-c6b1a98d11d2.fwf.app/](https://0c65a3f0-31ff-4e09-9dc5-c6b1a98d11d2.fwf.app/).
+
 ---
 
 ## Architecture
