@@ -128,8 +128,8 @@ ollama pull qwen2.5:14b
 
 ```bash
 # Clone and enter the repo
-git clone <repo-url>
-cd akamai-functions-semantic-cache
+git clone git@github.com:akamai-developers/akamai-functions-semantic-search-cache.git
+cd akamai-functions-semantic-search-cache
 
 # Build both components (api + frontend)
 spin build
@@ -138,10 +138,10 @@ spin build
 spin up
 ```
 
-By default `spin.toml` points `ollama_endpoint` at `http://210.1.2.123:11434`. Override it for local dev:
+By default `spin.toml` points `ollama_endpoint` at `http://127.0.0.1:11434`. Override it for you've Ollama exposed on a different port:
 
 ```bash
-spin up --variable ollama_endpoint=http://localhost:11434
+spin up --variable ollama_endpoint=http://localhost:8080
 ```
 
 Spin serves the Astro frontend on `/` and the Hono API on `/api/...` from the same origin, so no proxy or CORS configuration is needed.
